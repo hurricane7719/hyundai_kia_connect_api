@@ -1,5 +1,5 @@
-"""
 import os
+import logging
 
 from hyundai_kia_connect_api.VehicleManager import VehicleManager
 
@@ -19,4 +19,3 @@ def test_CA_login():
     vm.check_and_refresh_token()
     vm.check_and_force_update_vehicles(force_refresh_interval=600)
     assert len(vm.vehicles.keys()) > 0
-"""

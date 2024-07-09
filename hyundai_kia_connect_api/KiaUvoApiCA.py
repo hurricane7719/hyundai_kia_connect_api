@@ -276,6 +276,7 @@ class KiaUvoApiCA(ApiImpl):
         )
 
         vehicle.car_battery_percentage = get_child_value(state, "status.battery.batSoc")
+#        print (vehicle.car_battery_percentage)
         vehicle.engine_is_running = get_child_value(state, "status.engine")
         vehicle.washer_fluid_warning_is_on = get_child_value(
             state, "status.washerFluidStatus"
@@ -422,13 +423,21 @@ class KiaUvoApiCA(ApiImpl):
     def _update_vehicle_properties_location(
         self, vehicle: Vehicle, state: dict
     ) -> None:
-        if get_child_value(state, "coord.lat"):
+        print ("Enter Vehicle Location")
+
+#        x = get_child_value(state, "gpsDetail.coord.lat")
+#        print (x)
+
+#        _LOGGER.debug(f"{DOMAIN} - Vehicle State {state}")
+        if get_child_value(state, "gpsDetail.coord.lat"):
+            print ("Found coord.lat")
             self.vehicle_timezone = vehicle.timezone
             vehicle.location = (
-                get_child_value(state, "coord.lat"),
-                get_child_value(state, "coord.lon"),
+                get_child_value(state, "gpsDetail.coord.lat"),
+                get_child_value(state, "gpsDetail.coord.lon"),
                 parse_datetime(get_child_value(state, "time"), self.data_timezone),
             )
+            _LOGGER.debug(f"{DOMAIN} - Vehicle Location {vehicle.location}")
         vehicle.data["vehicleLocation"] = state
 
     def _get_cached_vehicle_state(self, token: Token, vehicle: Vehicle) -> dict:
@@ -481,23 +490,29 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
 
-        if vehicle.model == "GV60":
-            url = self.API_URL + "evc/fme"
+        response = {'responseHeader': {'responseCode': 0, 'responseDesc': 'Success'}, 'result': {'gpsDetail': {'coord': {'lat': 45.155261, 'lon': -75.430111, 'alt': 0.0, 'type': 0}, 'head': 199, 'speed': {'value': 0, 'unit': 0}, 'accuracy': {'hdop': 115, 'pdop': 192}, 'time': '20240709195224'}, 'drvDistance': {'rangeByFuel': {'gasModeRange': {'value': 0.0, 'unit': 1}, 'evModeRange': {'value': 202.0, 'unit': 1}, 'totalAvailableRange': {'value': 202.0, 'unit': 1}}, 'type': 2}}}
+        _LOGGER.debug(f"{DOMAIN} - Get Vehicle Location {response}")
 
-        try:
-            headers["pAuth"] = self._get_pin_token(token, vehicle)
+        return response["result"]
 
-            response = self.sessions.post(
-                url, headers=headers, data=json.dumps({"pin": token.pin})
-            )
-            response = response.json()
-            _LOGGER.debug(f"{DOMAIN} - Get Vehicle Location {response}")
-            if response["responseHeader"]["responseCode"] != 0:
-                raise APIError("No Location Located")
-            return response["result"]
-        except Exception:
-            _LOGGER.warning(f"{DOMAIN} - Get vehicle location failed")
-            return None
+#        if vehicle.model == "GV60":
+#            url = self.API_URL + "evc/fme"
+
+#        try:
+#            headers["pAuth"] = self._get_pin_token(token, vehicle)
+
+#            response = self.sessions.post(
+#                url, headers=headers, data=json.dumps({"pin": token.pin})
+#            )
+#            response = response.json()
+#            _LOGGER.debug(f"{DOMAIN} - Get Vehicle Location {response}")
+#            if response["responseHeader"]["responseCode"] != 0:
+#                raise APIError("No Location Located")
+#            return response["result"]
+#        except Exception:
+#            _LOGGER.warning(f"{DOMAIN} - Get vehicle location failed")
+#            return None
+
 
     def _get_pin_token(self, token: Token, vehicle: Vehicle) -> None:
         url = self.API_URL + "vrfypin"
@@ -768,3 +783,24 @@ class KiaUvoApiCA(ApiImpl):
 
         _LOGGER.debug(f"{DOMAIN} - Received set_charge_limits response {response}")
         return response_headers["transactionId"]
+
+"""     def get_trip_info(self, token: Token, vehicle: Vehicle, date_string: str, trip_period_type: int) -> dict:
+        url = self.API_URL + "alerts/maintenance/evTripDetails"
+        #if trip_period_type == 0:  # month
+        #    payload = {"tripPeriodType": 0, "setTripMonth": date_string}
+        #else:
+        #    payload = {"tripPeriodType": 1, "setTripDay": date_string}
+
+        _LOGGER.debug(f"{DOMAIN} - get_trip_info Request {payload}")
+        response = requests.post(
+            url,
+            json=payload,
+            headers=self._get_authenticated_headers(
+                token, vehicle.ccu_ccs2_protocol_support
+            ),
+        )
+        response = response.json()
+        _LOGGER.debug(f"{DOMAIN} - get_trip_info response {response}")
+        _check_response_for_errors(response)
+        return response
+"""
