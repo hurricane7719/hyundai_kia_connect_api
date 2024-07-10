@@ -466,7 +466,7 @@ class KiaUvoApiCA(ApiImpl):
         response = self.sessions.post(url, headers=headers)
         response = response.json()
 
-        _LOGGER.debug(f"{DOMAIN} - Received forced vehicle data {response}")
+        _LOGGER.debug(f"{DOMAIN} - Received forced Hurricane vehicle data {response}")
         response = response["result"]["status"]
         status = {}
         status["status"] = response
