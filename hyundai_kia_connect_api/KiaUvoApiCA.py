@@ -490,28 +490,28 @@ class KiaUvoApiCA(ApiImpl):
         headers["accessToken"] = token.access_token
         headers["vehicleId"] = vehicle.id
 
-        response = {'responseHeader': {'responseCode': 0, 'responseDesc': 'Success'}, 'result': {'gpsDetail': {'coord': {'lat': 45.155261, 'lon': -75.430111, 'alt': 0.0, 'type': 0}, 'head': 199, 'speed': {'value': 0, 'unit': 0}, 'accuracy': {'hdop': 115, 'pdop': 192}, 'time': '20240709195224'}, 'drvDistance': {'rangeByFuel': {'gasModeRange': {'value': 0.0, 'unit': 1}, 'evModeRange': {'value': 202.0, 'unit': 1}, 'totalAvailableRange': {'value': 202.0, 'unit': 1}}, 'type': 2}}}
+#        response = {'responseHeader': {'responseCode': 0, 'responseDesc': 'Success'}, 'result': {'gpsDetail': {'coord': {'lat': 45.155261, 'lon': -75.430111, 'alt': 0.0, 'type': 0}, 'head': 199, 'speed': {'value': 0, 'unit': 0}, 'accuracy': {'hdop': 115, 'pdop': 192}, 'time': '20240709195224'}, 'drvDistance': {'rangeByFuel': {'gasModeRange': {'value': 0.0, 'unit': 1}, 'evModeRange': {'value': 202.0, 'unit': 1}, 'totalAvailableRange': {'value': 202.0, 'unit': 1}}, 'type': 2}}}
         _LOGGER.debug(f"{DOMAIN} - Get Vehicle Location {response}")
 
         return response["result"]
 
-#        if vehicle.model == "GV60":
-#            url = self.API_URL + "evc/fme"
+        if vehicle.model == "GV60":
+            url = self.API_URL + "evc/fme"
 
-#        try:
-#            headers["pAuth"] = self._get_pin_token(token, vehicle)
+        try:
+            headers["pAuth"] = self._get_pin_token(token, vehicle)
 
-#            response = self.sessions.post(
-#                url, headers=headers, data=json.dumps({"pin": token.pin})
-#            )
-#            response = response.json()
-#            _LOGGER.debug(f"{DOMAIN} - Get Vehicle Location {response}")
-#            if response["responseHeader"]["responseCode"] != 0:
-#                raise APIError("No Location Located")
-#            return response["result"]
-#        except Exception:
-#            _LOGGER.warning(f"{DOMAIN} - Get vehicle location failed")
-#            return None
+            response = self.sessions.post(
+                url, headers=headers, data=json.dumps({"pin": token.pin})
+            )
+            response = response.json()
+            _LOGGER.debug(f"{DOMAIN} - Get Vehicle Location {response}")
+            if response["responseHeader"]["responseCode"] != 0:
+                raise APIError("No Location Located")
+            return response["result"]
+        except Exception:
+            _LOGGER.warning(f"{DOMAIN} - Get vehicle location failed")
+            return None
 
 
     def _get_pin_token(self, token: Token, vehicle: Vehicle) -> None:
